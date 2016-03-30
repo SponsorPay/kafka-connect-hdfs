@@ -112,19 +112,19 @@ public class TopicPartitionWriter {
   }
 
   public TopicPartitionWriter(
-          TopicPartition tp,
-          Storage storage,
-          RecordWriterProvider writerProvider,
-          Partitioner partitioner,
-          HdfsSinkConnectorConfig connectorConfig,
-          SinkTaskContext context,
-          AvroData avroData,
-          HiveMetaStore hiveMetaStore,
-          HiveUtil hive,
-          SchemaFileReader schemaFileReader,
-          ExecutorService executorService,
-          Queue<Future> hiveUpdateFutures,
-          Producer<String, String> writerLogProducer) {
+      TopicPartition tp,
+      Storage storage,
+      RecordWriterProvider writerProvider,
+      Partitioner partitioner,
+      HdfsSinkConnectorConfig connectorConfig,
+      SinkTaskContext context,
+      AvroData avroData,
+      HiveMetaStore hiveMetaStore,
+      HiveUtil hive,
+      SchemaFileReader schemaFileReader,
+      ExecutorService executorService,
+      Queue<Future> hiveUpdateFutures,
+      Producer<String, String> writerLogProducer) {
     this.tp = tp;
     this.connectorConfig = connectorConfig;
     this.context = context;
