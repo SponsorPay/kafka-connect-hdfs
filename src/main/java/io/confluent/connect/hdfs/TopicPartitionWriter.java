@@ -561,6 +561,14 @@ public class TopicPartitionWriter {
     }
   }
 
+  private KeyedMessage<String, String> createLogRecord(TopicPartition tp, String dir, String file) {
+    String topic = tp.topic() + "-log";
+    String key = dir;
+    String value = file;
+
+    return new KeyedMessage(topic, key, value);
+  }
+
   private void commitFile(String encodedPartiton) throws IOException {
     if (!startOffsets.containsKey(encodedPartiton)) {
       return;
@@ -579,10 +587,7 @@ public class TopicPartitionWriter {
     }
     if (writerLogProducer != null) {
       try {
-        String topic = tp.topic() + "-log";
-        String key = directoryName;
-        String value = committedFile;
-        KeyedMessage<String, String> data = new KeyedMessage(topic, key, value);
+        KeyedMessage data = createLogRecord(tp, directoryName, committedFile);
         writerLogProducer.send(data);
       } catch (Exception e) {
         throw new IOException("Writer Logging failed: " + e.toString());
