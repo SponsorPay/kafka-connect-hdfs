@@ -580,9 +580,9 @@ public class TopicPartitionWriter {
     if (writerLogProducer != null) {
       try {
         String topic = tp.topic() + "-log";
-        String key = committedFile;
-        String value = String.valueOf(recordCounter);
-        KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, key, value);
+        String key = directoryName;
+        String value = committedFile;
+        KeyedMessage<String, String> data = new KeyedMessage(topic, key, value);
         writerLogProducer.send(data);
       } catch (Exception e) {
         throw new IOException("Writer Logging failed: " + e.toString());
