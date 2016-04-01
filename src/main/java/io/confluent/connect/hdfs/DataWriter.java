@@ -55,6 +55,7 @@ import io.confluent.connect.hdfs.partitioner.Partitioner;
 import io.confluent.connect.hdfs.storage.Storage;
 import io.confluent.connect.hdfs.storage.StorageFactory;
 
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 
@@ -198,9 +199,12 @@ public class DataWriter {
       writerLogging = connectorConfig.getBoolean(HdfsSinkConnectorConfig.WRITER_LOGGING_CONFIG);
       if (writerLogging) {
         Properties props = new Properties();
-        props.put("bootstrap.servers", HdfsSinkConnectorConfig.WRITER_LOGGING_BROKERS_DEFAULT);
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                  HdfsSinkConnectorConfig.WRITER_LOGGING_BROKERS_DEFAULT);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                  "org.apache.kafka.common.serialization.StringSerializer");
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                  "org.apache.kafka.common.serialization.StringSerializer");
 
         writerLogProducer = new KafkaProducer<>(props);
       }
