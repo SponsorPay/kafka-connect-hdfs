@@ -14,12 +14,10 @@
 
 package io.confluent.connect.hdfs;
 
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.errors.ConnectException;
@@ -54,6 +52,8 @@ import io.confluent.connect.hdfs.schema.Compatibility;
 import io.confluent.connect.hdfs.schema.SchemaUtils;
 import io.confluent.connect.hdfs.storage.Storage;
 import io.confluent.connect.hdfs.wal.WAL;
+
+import org.apache.kafka.clients.producer.Producer;
 
 public class TopicPartitionWriter {
   private static final Logger log = LoggerFactory.getLogger(TopicPartitionWriter.class);
@@ -561,12 +561,12 @@ public class TopicPartitionWriter {
     }
   }
 
-  private KeyedMessage<String, String> createLogRecord(TopicPartition tp, String dir, String file) {
+  private ProducerRecord<String, String> createLogRecord(TopicPartition tp, String dir, String file) {
     String topic = tp.topic() + "-log";
     String key = dir;
     String value = file;
 
-    return new KeyedMessage(topic, key, value);
+    return new ProducerRecord(topic, key, value);
   }
 
   private void commitFile(String encodedPartiton) throws IOException {
@@ -587,7 +587,7 @@ public class TopicPartitionWriter {
     }
     if (writerLogProducer != null) {
       try {
-        KeyedMessage data = createLogRecord(tp, directoryName, committedFile);
+        ProducerRecord data = createLogRecord(tp, directoryName, committedFile);
         writerLogProducer.send(data);
       } catch (Exception e) {
         throw new IOException("Writer Logging failed: " + e.toString());

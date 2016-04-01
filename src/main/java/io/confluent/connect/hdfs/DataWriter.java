@@ -55,8 +55,8 @@ import io.confluent.connect.hdfs.partitioner.Partitioner;
 import io.confluent.connect.hdfs.storage.Storage;
 import io.confluent.connect.hdfs.storage.StorageFactory;
 
-import kafka.producer.ProducerConfig;
-import kafka.javaapi.producer.Producer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.KafkaProducer;
 
 public class DataWriter {
   private static final Logger log = LoggerFactory.getLogger(DataWriter.class);
@@ -198,11 +198,11 @@ public class DataWriter {
       writerLogging = connectorConfig.getBoolean(HdfsSinkConnectorConfig.WRITER_LOGGING_CONFIG);
       if (writerLogging) {
         Properties props = new Properties();
-        props.put("metadata.broker.list", HdfsSinkConnectorConfig.WRITER_LOGGING_BROKERS_DEFAULT);
-        props.put("serializer.class", "kafka.serializer.StringEncoder");
+        props.put("bootstrap.servers", HdfsSinkConnectorConfig.WRITER_LOGGING_BROKERS_DEFAULT);
+        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        ProducerConfig config = new ProducerConfig(props);
-        writerLogProducer = new Producer(config);
+        writerLogProducer = new KafkaProducer<>(props);
       }
 
       topicPartitionWriters = new HashMap<>();
