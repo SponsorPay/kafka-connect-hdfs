@@ -58,6 +58,7 @@ import io.confluent.connect.hdfs.storage.StorageFactory;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 
 public class DataWriter {
   private static final Logger log = LoggerFactory.getLogger(DataWriter.class);
@@ -84,7 +85,7 @@ public class DataWriter {
   private boolean hiveIntegration;
   private Thread ticketRenewThread;
   private volatile boolean isRunning;
-  private Producer<String, String> writerLogProducer;
+  private Producer<String, Object> writerLogProducer;
   private boolean writerLogging;
 
   @SuppressWarnings("unchecked")
@@ -204,7 +205,8 @@ public class DataWriter {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
                   "org.apache.kafka.common.serialization.StringSerializer");
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                  "org.apache.kafka.common.serialization.StringSerializer");
+                io.confluent.kafka.serializers.KafkaAvroSerializer.class);
+        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://xray01.local0:8081");
 
         writerLogProducer = new KafkaProducer<>(props);
       }

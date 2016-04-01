@@ -12,7 +12,7 @@ public class NotificationTests extends TestWithMiniDFSCluster {
     @Test
     public void testCommitNotification() throws Exception {
         DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
-        hdfsWriter.recover(TOPIC_PARTITION);
+        hdfsWriter.recover(TOPIC_TEST_PARTITION);
 
         String key = "key";
         Schema schema = createSchema();
@@ -21,7 +21,7 @@ public class NotificationTests extends TestWithMiniDFSCluster {
         Collection<SinkRecord> sinkRecords = new ArrayList<>();
         for (long offset = 0; offset < 7; offset++) {
             SinkRecord sinkRecord =
-                    new SinkRecord(TOPIC, PARTITION, Schema.STRING_SCHEMA, key, schema, record, offset);
+                    new SinkRecord(TOPIC_TEST, PARTITION, Schema.STRING_SCHEMA, key, schema, record, offset);
 
             sinkRecords.add(sinkRecord);
         }

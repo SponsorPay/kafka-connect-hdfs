@@ -44,12 +44,14 @@ public class HdfsSinkConnectorTestBase {
 
   protected MockSinkTaskContext context;
   protected static final String TOPIC = "topic";
+  protected static final String TOPIC_TEST = "kafka_connect_hdfs_v1";
   protected static final int PARTITION = 12;
   protected static final int PARTITION2 = 13;
   protected static final int PARTITION3 = 14;
   protected static final TopicPartition TOPIC_PARTITION = new TopicPartition(TOPIC, PARTITION);
   protected static final TopicPartition TOPIC_PARTITION2 = new TopicPartition(TOPIC, PARTITION2);
   protected static final TopicPartition TOPIC_PARTITION3 = new TopicPartition(TOPIC, PARTITION3);
+  protected static final TopicPartition TOPIC_TEST_PARTITION = new TopicPartition(TOPIC_TEST, PARTITION);
   protected static Set<TopicPartition> assignment;
 
 
@@ -111,6 +113,7 @@ public class HdfsSinkConnectorTestBase {
     assignment = new HashSet<>();
     assignment.add(TOPIC_PARTITION);
     assignment.add(TOPIC_PARTITION2);
+    assignment.add(TOPIC_TEST_PARTITION);
     context = new MockSinkTaskContext();
   }
 

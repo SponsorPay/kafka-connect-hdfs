@@ -98,7 +98,7 @@ public class TopicPartitionWriter {
   private Queue<Future> hiveUpdateFutures;
   private Set<String> hivePartitions;
 
-  private Producer<String, String> writerLogProducer;
+  private Producer<String, Object> writerLogProducer;
 
   public TopicPartitionWriter(
       TopicPartition tp,
@@ -124,7 +124,7 @@ public class TopicPartitionWriter {
       SchemaFileReader schemaFileReader,
       ExecutorService executorService,
       Queue<Future> hiveUpdateFutures,
-      Producer<String, String> writerLogProducer) {
+      Producer<String, Object> writerLogProducer) {
     this.tp = tp;
     this.connectorConfig = connectorConfig;
     this.context = context;
@@ -561,12 +561,19 @@ public class TopicPartitionWriter {
     }
   }
 
-  private ProducerRecord<String, String> createLogRecord(TopicPartition tp, String dir, String file) {
+  private ProducerRecord<String, Object> createLogRecord(TopicPartition tp, String dir, String file) {
     String topic = tp.topic() + "-log";
     String key = dir;
-    String value = file;
+//    String value = file;
+    String userSchema = "{\"type\":\"record\"," +
+            "\"name\":\"writerlog\"," +
+            "\"fields\":[{\"name\":\"file\",\"type\":\"string\"}]}";
+    org.apache.avro.Schema.Parser parser = new org.apache.avro.Schema.Parser();
+    org.apache.avro.Schema schema = parser.parse(userSchema);
+    org.apache.avro.generic.GenericRecord avroRecord = new org.apache.avro.generic.GenericData.Record(schema);
+    avroRecord.put("file", file);
 
-    return new ProducerRecord(topic, key, value);
+    return new ProducerRecord(topic, key, avroRecord);
   }
 
   private void commitFile(String encodedPartiton) throws IOException {
