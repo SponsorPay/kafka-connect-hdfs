@@ -588,7 +588,7 @@ public class TopicPartitionWriter {
     if (writerLogProducer != null) {
       try {
         ProducerRecord data = createLogRecord(tp, directoryName, committedFile);
-        writerLogProducer.send(data);
+        writerLogProducer.send(data).get();
       } catch (Exception e) {
         throw new IOException("Writer Logging failed: " + e.toString());
       }
