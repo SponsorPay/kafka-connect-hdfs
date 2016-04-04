@@ -557,21 +557,15 @@ public class TopicPartitionWriter {
   private ProducerRecord<String, Object> createLogRecord(TopicPartition tp, String dir, String file) {
     String topic = tp.topic() + "-log";
     String key = dir;
-//    String value = file;
-//    String userSchema = "{\"type\":\"record\"," +
-//            "\"name\":\"writerlog\"," +
-//            "\"fields\":[{\"name\":\"file\",\"type\":\"string\"}]}";
-//    org.apache.avro.Schema.Parser parser = new org.apache.avro.Schema.Parser();
-//    org.apache.avro.Schema schema = parser.parse(userSchema);
     org.apache.avro.Schema schema = org.apache.avro.SchemaBuilder.record("writerlog").fields()
             .requiredString("file").requiredLong("time")
             .endRecord();
-    org.apache.avro.generic.GenericRecord avroRecord = new org.apache.avro.generic.GenericData.Record(schema);
+    org.apache.avro.generic.GenericRecord value = new org.apache.avro.generic.GenericData.Record(schema);
 
-    avroRecord.put("file", file);
-    avroRecord.put("time",  Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTimeInMillis());
+    value.put("file", file);
+    value.put("time",  Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTimeInMillis());
 
-    return new ProducerRecord(topic, key, avroRecord);
+    return new ProducerRecord(topic, key, value);
   }
 
   private void commitFile(String encodedPartiton) throws IOException {
