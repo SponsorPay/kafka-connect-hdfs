@@ -200,13 +200,14 @@ public class DataWriter {
       writerLogging = connectorConfig.getBoolean(HdfsSinkConnectorConfig.WRITER_LOGGING_CONFIG);
       if (writerLogging) {
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                  HdfsSinkConnectorConfig.WRITER_LOGGING_BROKERS_DEFAULT);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                  "org.apache.kafka.common.serialization.StringSerializer");
+                "org.apache.kafka.common.serialization.StringSerializer");
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 io.confluent.kafka.serializers.KafkaAvroSerializer.class);
-        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://xray01.local0:8081");
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                connectorConfig.getString(HdfsSinkConnectorConfig.WRITER_LOGGING_BROKERS_CONFIG));
+        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+                connectorConfig.getString(HdfsSinkConnectorConfig.WRITER_LOGGING_SCHEMA_REGISTRY_CONFIG));
 
         writerLogProducer = new KafkaProducer<>(props);
       }

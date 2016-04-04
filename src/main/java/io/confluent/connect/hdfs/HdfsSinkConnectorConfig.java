@@ -196,10 +196,13 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
   public static final boolean WRITER_LOGGING_DEFAULT = true;
 
   public static final String WRITER_LOGGING_BROKERS_CONFIG = "hdfs.writer.logging.brokers";
-  private static final String WRITER_LOGGING_BROKERS_DOC =
-          "List of kafka brokers: broker1:9092,broker2:9092";
-  public static final String WRITER_LOGGING_BROKERS_DEFAULT = "xray01.local0:9092,xray02.local0:9092";
+  private static final String WRITER_LOGGING_BROKERS_DOC = "List of kafka brokers: broker1:9092,broker2:9092";
+  public static final String WRITER_LOGGING_BROKERS_DEFAULT = "localhost:9092";
 
+
+  public static final String WRITER_LOGGING_SCHEMA_REGISTRY_CONFIG = "hdfs.writer.logging.schema.registry";
+  private static final String WRITER_LOGGING_SCHEMA_REGISTRY_DOC = "Url of a schema registry";
+  public static final String WRITER_LOGGING_SCHEMA_REGISTRY_DEFAULT = "http://localhost:8081";
 
   static ConfigDef config = new ConfigDef()
       .define(HDFS_URL_CONFIG, Type.STRING, Importance.HIGH, HDFS_URL_DOC)
@@ -253,7 +256,9 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
               KERBEROS_TICKET_RENEW_PERIOD_MS_DOC)
       .define(WRITER_LOGGING_CONFIG, Type.BOOLEAN, WRITER_LOGGING_DEFAULT, Importance.LOW, WRITER_LOGGING_DOC)
       .define(WRITER_LOGGING_BROKERS_CONFIG, Type.STRING, WRITER_LOGGING_BROKERS_DEFAULT, Importance.LOW,
-              WRITER_LOGGING_BROKERS_DOC);
+              WRITER_LOGGING_BROKERS_DOC)
+      .define(WRITER_LOGGING_SCHEMA_REGISTRY_CONFIG, Type.STRING, WRITER_LOGGING_SCHEMA_REGISTRY_DEFAULT, Importance.LOW,
+              WRITER_LOGGING_SCHEMA_REGISTRY_DOC);
 
   public HdfsSinkConnectorConfig(Map<String, String> props) {
     super(config, props);

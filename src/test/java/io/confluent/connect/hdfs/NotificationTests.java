@@ -7,8 +7,17 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 public class NotificationTests extends TestWithMiniDFSCluster {
+    @Override
+    protected Map<String, String> createProps() {
+        Map<String, String> props = super.createProps();
+        props.put(HdfsSinkConnectorConfig.WRITER_LOGGING_BROKERS_CONFIG, "xray01.local0:9092,xray02.local0:9092");
+        props.put(HdfsSinkConnectorConfig.WRITER_LOGGING_SCHEMA_REGISTRY_CONFIG, "http://xray01.local0:8081");
+        return props;
+    }
+
     @Test
     public void testCommitNotification() throws Exception {
         DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
