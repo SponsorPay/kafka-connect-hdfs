@@ -29,14 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -565,13 +558,18 @@ public class TopicPartitionWriter {
     String topic = tp.topic() + "-log";
     String key = dir;
 //    String value = file;
-    String userSchema = "{\"type\":\"record\"," +
-            "\"name\":\"writerlog\"," +
-            "\"fields\":[{\"name\":\"file\",\"type\":\"string\"}]}";
-    org.apache.avro.Schema.Parser parser = new org.apache.avro.Schema.Parser();
-    org.apache.avro.Schema schema = parser.parse(userSchema);
+//    String userSchema = "{\"type\":\"record\"," +
+//            "\"name\":\"writerlog\"," +
+//            "\"fields\":[{\"name\":\"file\",\"type\":\"string\"}]}";
+//    org.apache.avro.Schema.Parser parser = new org.apache.avro.Schema.Parser();
+//    org.apache.avro.Schema schema = parser.parse(userSchema);
+    org.apache.avro.Schema schema = org.apache.avro.SchemaBuilder.record("writerlog").fields()
+            .requiredString("file").requiredLong("time")
+            .endRecord();
     org.apache.avro.generic.GenericRecord avroRecord = new org.apache.avro.generic.GenericData.Record(schema);
+
     avroRecord.put("file", file);
+    avroRecord.put("time",  Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTimeInMillis());
 
     return new ProducerRecord(topic, key, avroRecord);
   }
