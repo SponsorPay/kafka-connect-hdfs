@@ -193,7 +193,7 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
   public static final String WRITER_LOGGING_CONFIG = "hdfs.writer.logging";
   private static final String WRITER_LOGGING_DOC =
           "Configuration indicating whether to put file names written to HDFS to a Kafka topic";
-  public static final boolean WRITER_LOGGING_DEFAULT = true;
+  public static final boolean WRITER_LOGGING_DEFAULT = false;
 
   public static final String WRITER_LOGGING_BROKERS_CONFIG = "hdfs.writer.logging.brokers";
   private static final String WRITER_LOGGING_BROKERS_DOC = "List of kafka brokers: broker1:9092,broker2:9092";
