@@ -142,7 +142,7 @@ Example
 Here is the content of ``etc/kafka-connect-hdfs/quickstart-hdfs.properties``::
 
   name=hdfs-sink
-  connector.class=io.confluent.connect.hdfs.HdfsSinkConnector
+  connector.class=io.confluent.connect.hdfs.FyberHdfsSinkConnector
   tasks.max=1
   topics=test_hdfs
   hdfs.url=hdfs://localhost:9000
