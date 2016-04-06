@@ -82,6 +82,7 @@ public class CreationTimePartitioner implements Partitioner {
             Schema.Type type = valueSchema.field(fieldName).schema().type();
             switch (type) {
                 case INT32:
+                case INT64:
                     Number record = (Number) creationTime;
                     timestamp = record.longValue();
                     break;
