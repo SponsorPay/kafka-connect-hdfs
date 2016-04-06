@@ -14,6 +14,10 @@
 
 package io.confluent.connect.hdfs.partitioner;
 
+import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.connect.data.SchemaBuilder;
+import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.sink.SinkRecord;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
@@ -39,11 +43,30 @@ public class CreationTimePartitionerTest {
 
         String pathFormat = partitioner.getPathFormat();
         String timeZoneString = (String) config.get(HdfsSinkConnectorConfig.TIMEZONE_CONFIG);
-        long timestamp = new DateTime(2015, 2, 1, 3, 0, 0, 0, DateTimeZone.forID(timeZoneString)).getMillis();
+        long timestamp = new DateTime(2016, 4, 6, 14, 0, 0, 0, DateTimeZone.forID(timeZoneString)).getMillis();
         String encodedPartition = TimeUtils.encodeTimestamp(partitionDurationMs, pathFormat,
                 timeZoneString, timestamp);
         String path = partitioner.generatePartitionedPath("topic", encodedPartition);
-        assertEquals("topic/year=2015/month=02/day=01/hour=03/", path);
+        assertEquals("topic/year=2016/month=04/day=06/hour=14/", path);
+    }
+
+    @Test
+    public void testEncodedPartition() throws Exception {
+        Map<String, Object> config = createConfig();
+        String timeZoneString = (String) config.get(HdfsSinkConnectorConfig.TIMEZONE_CONFIG);
+        long timestamp = new DateTime(2016, 4, 6, 14, 0, 0, 0, DateTimeZone.forID(timeZoneString)).getMillis();
+
+        CreationTimePartitioner partitioner = new CreationTimePartitioner();
+        partitioner.configure(config);
+        Schema valueSchema = SchemaBuilder.struct()
+          .name("Test schema").version(1).doc("Schema to test encoding")
+          .field("creation_timestamp", Schema.INT64_SCHEMA)
+          .build();
+        Object value = new Struct(valueSchema).put("creation_timestamp", timestamp);
+        SinkRecord sinkRecord = new SinkRecord("topic", 0, Schema.STRING_SCHEMA, "key", valueSchema, value, 0);
+
+        String encodedPartition = partitioner.encodePartition(sinkRecord);
+        assertEquals("year=2016/month=04/day=06/hour=14/", encodedPartition);
     }
 
     private Map<String, Object> createConfig() {
