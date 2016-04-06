@@ -73,7 +73,7 @@ public class CreationTimePartitioner implements Partitioner {
     @Override
     public String encodePartition(SinkRecord sinkRecord) {
         long timestamp;
-        String fieldName = "creation_time";
+        String fieldName = "creation_timestamp";
         Object value = sinkRecord.value();
         Schema valueSchema = sinkRecord.valueSchema();
         if (value instanceof Struct) {
