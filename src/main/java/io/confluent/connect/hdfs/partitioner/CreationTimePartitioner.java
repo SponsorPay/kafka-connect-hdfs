@@ -127,4 +127,7 @@ public class CreationTimePartitioner implements Partitioner {
         }
     }
 
+    public String getPathFormat() {
+        return pathFormat;
+    }
 }
