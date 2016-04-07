@@ -24,6 +24,7 @@ import io.confluent.common.config.ConfigDef.Type;
 public class HdfsSinkConnectorConfig extends AbstractConfig {
   public static final String CONNECTOR_NAME_CONFIG = "name";
   private static final String CONNECTOR_NAME_DOC = "Name of current connector";
+  public static final String CONNECTOR_NAME_DEFAULT = "unknown_connector";
 
   public static final String HDFS_URL_CONFIG = "hdfs.url";
   private static final String HDFS_URL_DOC =
@@ -212,7 +213,7 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
   public static final String WRITER_LOGGING_TOPIC_FORMAT_DEFAULT = "${connector}-${topic}-log";
 
   static ConfigDef config = new ConfigDef()
-      .define(CONNECTOR_NAME_CONFIG, Type.STRING, Importance.HIGH, CONNECTOR_NAME_DOC)
+      .define(CONNECTOR_NAME_CONFIG, Type.STRING, CONNECTOR_NAME_DEFAULT, Importance.HIGH, CONNECTOR_NAME_DOC)
       .define(HDFS_URL_CONFIG, Type.STRING, Importance.HIGH, HDFS_URL_DOC)
       .define(HADOOP_CONF_DIR_CONFIG, Type.STRING, HADOOP_CONF_DIR_DEFAULT, Importance.HIGH,
               HADOOP_CONF_DIR_DOC)
