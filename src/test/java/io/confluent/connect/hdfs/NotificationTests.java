@@ -22,7 +22,6 @@ public class NotificationTests extends TestWithMiniDFSCluster {
 
     @Test
     public void testCommitNotification() throws Exception {
-        System.err.print("---> name = " + connectorConfig.getString("name"));
         DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
         hdfsWriter.recover(TOPIC_TEST_PARTITION);
 
