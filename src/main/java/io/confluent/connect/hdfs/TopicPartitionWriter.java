@@ -555,8 +555,6 @@ public class TopicPartitionWriter {
   }
 
   private ProducerRecord<String, Object> createLogRecord(TopicPartition tp, String dir, String file) {
-    String connName = connectorConfig.getString("name");
-    String topic = connName + "-" + tp.topic() + "-log";
     String key = dir;
     org.apache.avro.Schema schema = org.apache.avro.SchemaBuilder.record("writerlog").fields()
             .requiredString("file").requiredLong("time")
@@ -565,6 +563,11 @@ public class TopicPartitionWriter {
 
     value.put("file", file);
     value.put("time",  Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTimeInMillis());
+
+    String topic = tp.topic() + "-log";
+    try {
+      topic = topic.concat(connectorConfig.getString("name"));
+    } catch (Exception e) {}
 
     return new ProducerRecord(topic, key, value);
   }
