@@ -13,6 +13,7 @@ public class NotificationTests extends TestWithMiniDFSCluster {
     @Override
     protected Map<String, String> createProps() {
         Map<String, String> props = super.createProps();
+        props.put(HdfsSinkConnectorConfig.CONNECTOR_NAME_CONFIG, "test_connector");
         props.put(HdfsSinkConnectorConfig.WRITER_LOGGING_CONFIG, "true");
         props.put(HdfsSinkConnectorConfig.WRITER_LOGGING_BROKERS_CONFIG, "xray01.local0:9092,xray02.local0:9092");
         props.put(HdfsSinkConnectorConfig.WRITER_LOGGING_SCHEMA_REGISTRY_CONFIG, "http://xray01.local0:8081");
@@ -21,6 +22,7 @@ public class NotificationTests extends TestWithMiniDFSCluster {
 
     @Test
     public void testCommitNotification() throws Exception {
+        System.err.print("---> name = " + connectorConfig.getString("name"));
         DataWriter hdfsWriter = new DataWriter(connectorConfig, context, avroData);
         hdfsWriter.recover(TOPIC_TEST_PARTITION);
 

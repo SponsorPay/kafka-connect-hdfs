@@ -14,6 +14,7 @@
 
 package io.confluent.connect.hdfs;
 
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -555,8 +556,17 @@ public class TopicPartitionWriter {
   }
 
   private ProducerRecord<String, Object> createLogRecord(TopicPartition tp, String dir, String file) {
-    String topic = tp.topic() + "-log";
-    try { topic = connectorConfig.getString("name") + "-" + topic; } catch (Exception e) {}
+    String topic;
+    try {
+      HashMap<String, String> valuesMap = new HashMap();
+      valuesMap.put("connector", connectorConfig.getString(HdfsSinkConnectorConfig.CONNECTOR_NAME_CONFIG));
+      valuesMap.put("topic", tp.topic());
+      StrSubstitutor sub = new StrSubstitutor(valuesMap);
+      topic = sub.replace(connectorConfig.getString(HdfsSinkConnectorConfig.WRITER_LOGGING_TOPIC_FORMAT_CONFIG));
+    } catch (Exception e) {
+      topic = "unknown_connector-" + tp.topic() + "-log";
+    }
+
     String key = dir;
     org.apache.avro.Schema schema = org.apache.avro.SchemaBuilder.record("writerlog").fields()
             .requiredString("file").requiredLong("time")

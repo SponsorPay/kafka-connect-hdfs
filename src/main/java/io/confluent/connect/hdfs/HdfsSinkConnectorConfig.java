@@ -22,6 +22,8 @@ import io.confluent.common.config.ConfigDef.Importance;
 import io.confluent.common.config.ConfigDef.Type;
 
 public class HdfsSinkConnectorConfig extends AbstractConfig {
+  public static final String CONNECTOR_NAME_CONFIG = "name";
+  private static final String CONNECTOR_NAME_DOC = "Name of current connector";
 
   public static final String HDFS_URL_CONFIG = "hdfs.url";
   private static final String HDFS_URL_DOC =
@@ -204,7 +206,13 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
   private static final String WRITER_LOGGING_SCHEMA_REGISTRY_DOC = "Url of a schema registry";
   public static final String WRITER_LOGGING_SCHEMA_REGISTRY_DEFAULT = "http://localhost:8081";
 
+  public static final String WRITER_LOGGING_TOPIC_FORMAT_CONFIG = "hdfs.writer.topic.format";
+  private static final String WRITER_LOGGING_TOPIC_FORMAT_DOC =
+          "Format of a topic name with named parameters: connector, topic. For example: ${connector}_${topic}";
+  public static final String WRITER_LOGGING_TOPIC_FORMAT_DEFAULT = "${connector}-${topic}-log";
+
   static ConfigDef config = new ConfigDef()
+      .define(CONNECTOR_NAME_CONFIG, Type.STRING, Importance.HIGH, CONNECTOR_NAME_DOC)
       .define(HDFS_URL_CONFIG, Type.STRING, Importance.HIGH, HDFS_URL_DOC)
       .define(HADOOP_CONF_DIR_CONFIG, Type.STRING, HADOOP_CONF_DIR_DEFAULT, Importance.HIGH,
               HADOOP_CONF_DIR_DOC)
@@ -258,7 +266,9 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
       .define(WRITER_LOGGING_BROKERS_CONFIG, Type.STRING, WRITER_LOGGING_BROKERS_DEFAULT, Importance.LOW,
               WRITER_LOGGING_BROKERS_DOC)
       .define(WRITER_LOGGING_SCHEMA_REGISTRY_CONFIG, Type.STRING, WRITER_LOGGING_SCHEMA_REGISTRY_DEFAULT, Importance.LOW,
-              WRITER_LOGGING_SCHEMA_REGISTRY_DOC);
+              WRITER_LOGGING_SCHEMA_REGISTRY_DOC)
+      .define(WRITER_LOGGING_TOPIC_FORMAT_CONFIG, Type.STRING, WRITER_LOGGING_TOPIC_FORMAT_DEFAULT, Importance.LOW,
+              WRITER_LOGGING_TOPIC_FORMAT_DOC);
 
   public HdfsSinkConnectorConfig(Map<String, String> props) {
     super(config, props);
