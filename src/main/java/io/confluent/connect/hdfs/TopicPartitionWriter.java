@@ -411,12 +411,14 @@ public class TopicPartitionWriter {
   private RecordWriter<SinkRecord> getWriter(SinkRecord record, String encodedPartition)
       throws ConnectException {
     try {
+      log.debug("===>>> [14] getWriter {}", writers.toString());
       if (writers.containsKey(encodedPartition)) {
         return writers.get(encodedPartition);
       }
       String tempFile = getTempFile(encodedPartition);
       RecordWriter<SinkRecord> writer = writerProvider.getRecordWriter(conf, tempFile, record, avroData);
       writers.put(encodedPartition, writer);
+      log.debug("===>>> [15] Added new writer to {}", writers.toString());
       if (hiveIntegration && !hivePartitions.contains(encodedPartition)) {
         addHivePartition(encodedPartition);
         hivePartitions.add(encodedPartition);
@@ -431,9 +433,11 @@ public class TopicPartitionWriter {
     String tempFile;
     if (tempFiles.containsKey(encodedPartition)) {
       tempFile = tempFiles.get(encodedPartition);
+      log.debug("===>>> [12] getTempFile {}", tempFile);
     } else {
       String directory = HdfsSinkConnecorConstants.TEMPFILE_DIRECTORY + getDirectory(encodedPartition);
       tempFile = FileUtils.tempFileName(url, topicsDir, directory, extension);
+      log.debug("===>>> [13] getTempFile {}", tempFile);
       tempFiles.put(encodedPartition, tempFile);
     }
     return tempFile;
@@ -536,7 +540,7 @@ public class TopicPartitionWriter {
   }
 
   private void appendToWAL() throws IOException {
-    log.debug("===>>> [9] beginAppend");
+    log.debug("===>>> [9] beginAppend {}", tempFiles.keySet().toString());
     beginAppend();
     for (String encodedPartition: tempFiles.keySet()) {
       appendToWAL(encodedPartition);
