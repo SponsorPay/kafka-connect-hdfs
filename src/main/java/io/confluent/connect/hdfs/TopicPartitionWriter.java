@@ -183,6 +183,7 @@ public class TopicPartitionWriter {
 
     private static State[] vals = values();
     public State next() {
+      log.debug("===>>> [1] Next state is {}", (this.ordinal() + 1) % vals.length);
       return vals[(this.ordinal() + 1) % vals.length];
     }
   }
@@ -270,6 +271,7 @@ public class TopicPartitionWriter {
                 nextState();
                 // Fall through and try to rotate immediately
               } else {
+                log.debug("===>>> [8] shouldRotate is false");
                 break;
               }
             }
@@ -485,7 +487,9 @@ public class TopicPartitionWriter {
 
     String encodedPartition = partitioner.encodePartition(record);
     RecordWriter<SinkRecord> writer = getWriter(record, encodedPartition);
+    log.debug("===>>> [2] Write a record {}, encodedPartition = ", record.toString(), encodedPartition);
     writer.write(record);
+    log.debug("===>>> [3] Write a record by the writer {}", writer.toString());
 
     if (!startOffsets.containsKey(encodedPartition)) {
       startOffsets.put(encodedPartition, record.kafkaOffset());
@@ -513,9 +517,11 @@ public class TopicPartitionWriter {
   private void appendToWAL(String encodedPartition) throws IOException {
     String tempFile = tempFiles.get(encodedPartition);
     if (appended.contains(tempFile)) {
+      log.debug("===>>> [4] appended doesn't contain {}", tempFile);
       return;
     }
     if (!startOffsets.containsKey(encodedPartition)) {
+      log.debug("===>>> [5] startOffsets doesn't contain {}", encodedPartition);
       return;
     }
     long startOffset = startOffsets.get(encodedPartition);
@@ -526,9 +532,11 @@ public class TopicPartitionWriter {
                                                        zeroPadOffsetFormat);
     wal.append(tempFile, committedFile);
     appended.add(tempFile);
+    log.debug("===>>> [6] appendToWAL {}", tempFile);
   }
 
   private void appendToWAL() throws IOException {
+    log.debug("===>>> [9] beginAppend");
     beginAppend();
     for (String encodedPartition: tempFiles.keySet()) {
       appendToWAL(encodedPartition);
@@ -580,6 +588,7 @@ public class TopicPartitionWriter {
 
   private void commitFile(String encodedPartiton) throws IOException {
     if (!startOffsets.containsKey(encodedPartiton)) {
+      log.debug("===>>> [7] !startOffsets.containsKey {}", encodedPartiton);
       return;
     }
     long startOffset = startOffsets.get(encodedPartiton);
