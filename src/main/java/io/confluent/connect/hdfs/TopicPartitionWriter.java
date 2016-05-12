@@ -418,13 +418,15 @@ public class TopicPartitionWriter {
       String tempFile = getTempFile(encodedPartition);
       RecordWriter<SinkRecord> writer = writerProvider.getRecordWriter(conf, tempFile, record, avroData);
       writers.put(encodedPartition, writer);
-      log.debug("===>>> [15] Added new writer to {}", writers.toString());
+      log.debug("===>>> [15] Added new writer - partition {}, writer {}", encodedPartition, writer.toString());
       if (hiveIntegration && !hivePartitions.contains(encodedPartition)) {
         addHivePartition(encodedPartition);
         hivePartitions.add(encodedPartition);
       }
+      log.debug("===>>> [18] getWriter {}", writer.toString());
       return writer;
     } catch (IOException e) {
+      log.debug("===>>> [16] getWriter exception {}", e.getMessage());
       throw new ConnectException(e);
     }
   }
@@ -491,9 +493,9 @@ public class TopicPartitionWriter {
 
     String encodedPartition = partitioner.encodePartition(record);
     RecordWriter<SinkRecord> writer = getWriter(record, encodedPartition);
-    log.debug("===>>> [2] Write a record {}, encodedPartition = ", record.toString(), encodedPartition);
+    log.debug("===>>> [2] Write a record {}, encodedPartition = {}", record.toString(), encodedPartition);
     writer.write(record);
-    log.debug("===>>> [3] Write a record by the writer {}", writer.toString());
+    log.debug("===>>> [3] Write a record {} by the writer {}", record.toString(), writer.toString());
 
     if (!startOffsets.containsKey(encodedPartition)) {
       startOffsets.put(encodedPartition, record.kafkaOffset());
