@@ -411,7 +411,7 @@ public class TopicPartitionWriter {
   private RecordWriter<SinkRecord> getWriter(SinkRecord record, String encodedPartition)
       throws ConnectException {
     try {
-      log.debug("===>>> [14] getWriter {}", writers.toString());
+      log.debug("===>>> [14] record = {} getWriter = {}", record.toString(), writers.toString());
       if (writers.containsKey(encodedPartition)) {
         return writers.get(encodedPartition);
       }
@@ -423,10 +423,10 @@ public class TopicPartitionWriter {
         addHivePartition(encodedPartition);
         hivePartitions.add(encodedPartition);
       }
-      log.debug("===>>> [18] getWriter {}", writer.toString());
+      log.debug("===>>> [18] record = {} getWriter {}", record.toString(), writer.toString());
       return writer;
     } catch (IOException e) {
-      log.debug("===>>> [16] getWriter exception {}", e.getMessage());
+      log.debug("===>>> [16] record = {} getWriter exception {}", record.toString(), e.getMessage());
       throw new ConnectException(e);
     }
   }
