@@ -599,23 +599,26 @@ public class TopicPartitionWriter {
                                                        startOffset, endOffset, extension,
                                                        zeroPadOffsetFormat);
 
+    log.debug("===>>> [10] Before commitFile: {}", committedFile);
     String directoryName = FileUtils.directoryName(url, topicsDir, directory);
     if (!storage.exists(directoryName)) {
       storage.mkdirs(directoryName);
     }
-    if (writerLogProducer != null) {
-      try {
-        ProducerRecord data = createLogRecord(tp, directoryName, committedFile);
-        writerLogProducer.send(data).get();
-      } catch (Exception e) {
-        throw new IOException("Writer Logging failed: " + e.toString());
-      }
-    }
+//    if (writerLogProducer != null) {
+//      try {
+//        ProducerRecord data = createLogRecord(tp, directoryName, committedFile);
+//        writerLogProducer.send(data).get();
+//      } catch (Exception e) {
+//        throw new IOException("Writer Logging failed: " + e.toString());
+//      }
+//    }
+    log.debug("===>>> [11] Before commitFile: {} tempFile {}", committedFile, tempFile);
     storage.commit(tempFile, committedFile);
     startOffsets.remove(encodedPartiton);
     offset = offset + recordCounter;
     recordCounter = 0;
-    log.info("Committed {} for {}", committedFile, tp);
+    log.debug("===>>> [12] After commitFile: {}", committedFile);
+    //log.info("Committed {} for {}", committedFile, tp);
   }
 
   private void deleteTempFile(String encodedPartiton) throws IOException {
