@@ -43,6 +43,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.Properties;
 
 import io.confluent.common.config.ConfigException;
 import io.confluent.connect.avro.AvroData;
@@ -53,6 +54,11 @@ import io.confluent.connect.hdfs.hive.HiveUtil;
 import io.confluent.connect.hdfs.partitioner.Partitioner;
 import io.confluent.connect.hdfs.storage.Storage;
 import io.confluent.connect.hdfs.storage.StorageFactory;
+
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 
 public class DataWriter {
   private static final Logger log = LoggerFactory.getLogger(DataWriter.class);
@@ -79,6 +85,8 @@ public class DataWriter {
   private boolean hiveIntegration;
   private Thread ticketRenewThread;
   private volatile boolean isRunning;
+  private Producer<String, Object> writerLogProducer;
+  private boolean writerLogging;
 
   @SuppressWarnings("unchecked")
   public DataWriter(HdfsSinkConnectorConfig connectorConfig, SinkTaskContext context, AvroData avroData) {
@@ -189,11 +197,26 @@ public class DataWriter {
         hiveUpdateFutures = new LinkedList<>();
       }
 
+      writerLogging = connectorConfig.getBoolean(HdfsSinkConnectorConfig.WRITER_LOGGING_CONFIG);
+      if (writerLogging) {
+        Properties props = new Properties();
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                "org.apache.kafka.common.serialization.StringSerializer");
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                io.confluent.kafka.serializers.KafkaAvroSerializer.class);
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                connectorConfig.getString(HdfsSinkConnectorConfig.WRITER_LOGGING_BROKERS_CONFIG));
+        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+                connectorConfig.getString(HdfsSinkConnectorConfig.WRITER_LOGGING_SCHEMA_REGISTRY_CONFIG));
+
+        writerLogProducer = new KafkaProducer<>(props);
+      }
+
       topicPartitionWriters = new HashMap<>();
       for (TopicPartition tp: assignment) {
         TopicPartitionWriter topicPartitionWriter = new TopicPartitionWriter(
             tp, storage, writerProvider, partitioner, connectorConfig, context, avroData, hiveMetaStore, hive, schemaFileReader, executorService,
-            hiveUpdateFutures);
+            hiveUpdateFutures, writerLogProducer);
         topicPartitionWriters.put(tp, topicPartitionWriter);
       }
     } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
@@ -274,7 +297,7 @@ public class DataWriter {
     for (TopicPartition tp: assignment) {
       TopicPartitionWriter topicPartitionWriter = new TopicPartitionWriter(
           tp, storage, writerProvider, partitioner, connectorConfig, context, avroData,
-          hiveMetaStore, hive, schemaFileReader, executorService, hiveUpdateFutures);
+          hiveMetaStore, hive, schemaFileReader, executorService, hiveUpdateFutures, writerLogProducer);
       topicPartitionWriters.put(tp, topicPartitionWriter);
       // We need to immediately start recovery to ensure we pause consumption of messages for the
       // assigned topics while we try to recover offsets and rewind.
@@ -324,6 +347,13 @@ public class DataWriter {
                  + "you probably need to sync with Hive next time you start the connector");
         executorService.shutdownNow();
       }
+    }
+
+    if (writerLogProducer != null) {
+      try {
+        log.info("Shutting down Writer Logging.");
+        writerLogProducer.close();
+      } catch (Exception e) {}
     }
 
     try {

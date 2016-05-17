@@ -27,9 +27,9 @@ import java.util.Map;
 import io.confluent.common.config.ConfigException;
 
 /**
- * HdfsSinkConnector is a Kafka Connect Connector implementation that ingest data from Kafka to HDFS.
+ * FyberHdfsSinkConnector is a Kafka Connect Connector implementation that ingest data from Kafka to HDFS.
  */
-public class HdfsSinkConnector extends Connector {
+public class FyberHdfsSinkConnector extends Connector {
 
   private Map<String, String> configProperties;
   private HdfsSinkConnectorConfig config;
@@ -45,7 +45,7 @@ public class HdfsSinkConnector extends Connector {
       configProperties = props;
       config = new HdfsSinkConnectorConfig(props);
     } catch (ConfigException e) {
-      throw new ConnectException("Couldn't start HdfsSinkConnector due to configuration error", e);
+      throw new ConnectException("Couldn't start FyberHdfsSinkConnector due to configuration error", e);
     }
   }
 
