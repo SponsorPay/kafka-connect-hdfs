@@ -569,11 +569,14 @@ public class TopicPartitionWriter {
 
     String key = dir;
     org.apache.avro.Schema schema = org.apache.avro.SchemaBuilder.record("writerlog").fields()
-            .requiredString("file").requiredLong("time")
+            .requiredString("file")
+            .requiredLong("time")
+            .name("count").type().intType().intDefault(-1)
             .endRecord();
     org.apache.avro.generic.GenericRecord value = new org.apache.avro.generic.GenericData.Record(schema);
     value.put("file", file);
     value.put("time",  Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTimeInMillis());
+    value.put("count", recordCounter);
 
     return new ProducerRecord(topic, key, value);
   }
