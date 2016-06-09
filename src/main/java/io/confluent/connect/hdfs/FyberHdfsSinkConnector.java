@@ -33,7 +33,6 @@ import java.util.Map;
  */
 public class FyberHdfsSinkConnector extends Connector {
 
-  private static final Logger log = LoggerFactory.getLogger(HdfsSinkConnector.class);
   private Map<String, String> configProperties;
   private HdfsSinkConnectorConfig config;
 

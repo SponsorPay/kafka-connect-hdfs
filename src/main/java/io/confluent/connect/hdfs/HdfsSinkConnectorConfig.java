@@ -34,6 +34,9 @@ import io.confluent.connect.hdfs.partitioner.Partitioner;
 import io.confluent.connect.hdfs.partitioner.TimeBasedPartitioner;
 
 public class HdfsSinkConnectorConfig extends AbstractConfig {
+  public static final String CONNECTOR_NAME_CONFIG = "name";
+  private static final String CONNECTOR_NAME_DOC = "Name of current connector";
+  public static final String CONNECTOR_NAME_DEFAULT = "unknown_connector";
 
   // HDFS Group
   public static final String HDFS_URL_CONFIG = "hdfs.url";
@@ -236,6 +239,25 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
       "The underlying storage layer. The default is HDFS";
   public static final String STORAGE_CLASS_DEFAULT = "io.confluent.connect.hdfs.storage.HdfsStorage";
   private static final String STORAGE_CLASS_DISPLAY = "Storage Class";
+
+  public static final String WRITER_LOGGING_CONFIG = "hdfs.writer.logging";
+  private static final String WRITER_LOGGING_DOC =
+          "Configuration indicating whether to put file names written to HDFS to a Kafka topic";
+  public static final boolean WRITER_LOGGING_DEFAULT = false;
+
+  public static final String WRITER_LOGGING_BROKERS_CONFIG = "hdfs.writer.logging.brokers";
+  private static final String WRITER_LOGGING_BROKERS_DOC = "List of kafka brokers: broker1:9092,broker2:9092";
+  public static final String WRITER_LOGGING_BROKERS_DEFAULT = "localhost:9092";
+
+
+  public static final String WRITER_LOGGING_SCHEMA_REGISTRY_CONFIG = "hdfs.writer.logging.schema.registry";
+  private static final String WRITER_LOGGING_SCHEMA_REGISTRY_DOC = "Url of a schema registry";
+  public static final String WRITER_LOGGING_SCHEMA_REGISTRY_DEFAULT = "http://localhost:8081";
+
+  public static final String WRITER_LOGGING_TOPIC_FORMAT_CONFIG = "hdfs.writer.topic.format";
+  private static final String WRITER_LOGGING_TOPIC_FORMAT_DOC =
+          "Format of a topic name with named parameters: connector, topic. For example: ${connector}_${topic}";
+  public static final String WRITER_LOGGING_TOPIC_FORMAT_DEFAULT = "${connector}-${topic}-log";
 
   public static final String HDFS_GROUP = "HDFS";
   public static final String HIVE_GROUP = "Hive";

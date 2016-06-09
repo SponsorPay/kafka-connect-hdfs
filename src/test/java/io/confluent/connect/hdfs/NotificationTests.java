@@ -37,6 +37,6 @@ public class NotificationTests extends TestWithMiniDFSCluster {
             sinkRecords.add(sinkRecord);
         }
         hdfsWriter.write(sinkRecords);
-        hdfsWriter.close();
-    }
+        hdfsWriter.close(assignment);
+        hdfsWriter.stop();    }
 }
