@@ -14,9 +14,11 @@
 
 package io.confluent.connect.hdfs;
 
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.errors.ConnectException;
@@ -28,14 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -51,6 +46,8 @@ import io.confluent.connect.hdfs.schema.Compatibility;
 import io.confluent.connect.hdfs.schema.SchemaUtils;
 import io.confluent.connect.hdfs.storage.Storage;
 import io.confluent.connect.hdfs.wal.WAL;
+
+import org.apache.kafka.clients.producer.Producer;
 
 public class TopicPartitionWriter {
   private static final Logger log = LoggerFactory.getLogger(TopicPartitionWriter.class);
@@ -95,6 +92,8 @@ public class TopicPartitionWriter {
   private Queue<Future> hiveUpdateFutures;
   private Set<String> hivePartitions;
 
+  private Producer<String, Object> writerLogProducer;
+
   public TopicPartitionWriter(
       TopicPartition tp,
       Storage storage,
@@ -103,7 +102,7 @@ public class TopicPartitionWriter {
       HdfsSinkConnectorConfig connectorConfig,
       SinkTaskContext context,
       AvroData avroData) {
-    this(tp, storage, writerProvider, partitioner, connectorConfig, context, avroData, null, null, null, null, null);
+    this(tp, storage, writerProvider, partitioner, connectorConfig, context, avroData, null, null, null, null, null, null);
   }
 
   public TopicPartitionWriter(
@@ -118,7 +117,8 @@ public class TopicPartitionWriter {
       HiveUtil hive,
       SchemaFileReader schemaFileReader,
       ExecutorService executorService,
-      Queue<Future> hiveUpdateFutures) {
+      Queue<Future> hiveUpdateFutures,
+      Producer<String, Object> writerLogProducer) {
     this.tp = tp;
     this.connectorConfig = connectorConfig;
     this.context = context;
@@ -129,6 +129,7 @@ public class TopicPartitionWriter {
     this.url = storage.url();
     this.conf = storage.conf();
     this.schemaFileReader = schemaFileReader;
+    this.writerLogProducer = writerLogProducer;
 
     topicsDir = connectorConfig.getString(HdfsSinkConnectorConfig.TOPICS_DIR_CONFIG);
     flushSize = connectorConfig.getInt(HdfsSinkConnectorConfig.FLUSH_SIZE_CONFIG);
@@ -554,6 +555,32 @@ public class TopicPartitionWriter {
     }
   }
 
+  private ProducerRecord<String, Object> createLogRecord(TopicPartition tp, String dir, String file) {
+    String topic;
+    try {
+      HashMap<String, String> valuesMap = new HashMap();
+      valuesMap.put("connector", connectorConfig.getString(HdfsSinkConnectorConfig.CONNECTOR_NAME_CONFIG));
+      valuesMap.put("topic", tp.topic());
+      StrSubstitutor sub = new StrSubstitutor(valuesMap);
+      topic = sub.replace(connectorConfig.getString(HdfsSinkConnectorConfig.WRITER_LOGGING_TOPIC_FORMAT_CONFIG));
+    } catch (Exception e) {
+      topic = "unknown_connector-" + tp.topic() + "-log";
+    }
+
+    String key = dir;
+    org.apache.avro.Schema schema = org.apache.avro.SchemaBuilder.record("writerlog").fields()
+            .requiredString("file")
+            .requiredLong("time")
+            .name("count").type().intType().intDefault(-1)
+            .endRecord();
+    org.apache.avro.generic.GenericRecord value = new org.apache.avro.generic.GenericData.Record(schema);
+    value.put("file", file);
+    value.put("time",  Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTimeInMillis());
+    value.put("count", recordCounter);
+
+    return new ProducerRecord(topic, key, value);
+  }
+
   private void commitFile(String encodedPartiton) throws IOException {
     if (!startOffsets.containsKey(encodedPartiton)) {
       return;
@@ -569,6 +596,14 @@ public class TopicPartitionWriter {
     String directoryName = FileUtils.directoryName(url, topicsDir, directory);
     if (!storage.exists(directoryName)) {
       storage.mkdirs(directoryName);
+    }
+    if (writerLogProducer != null) {
+      try {
+        ProducerRecord data = createLogRecord(tp, directoryName, committedFile);
+        writerLogProducer.send(data).get();
+      } catch (Exception e) {
+        throw new IOException("Writer Logging failed: " + e.toString());
+      }
     }
     storage.commit(tempFile, committedFile);
     startOffsets.remove(encodedPartiton);

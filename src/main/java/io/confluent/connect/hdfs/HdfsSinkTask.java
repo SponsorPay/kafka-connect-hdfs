@@ -67,10 +67,10 @@ public class HdfsSinkTask extends SinkTask {
         syncWithHive();
       }
     } catch (ConfigException e) {
-      throw new ConnectException("Couldn't start HdfsSinkConnector due to configuration error.", e);
+      throw new ConnectException("Couldn't start FyberHdfsSinkConnector due to configuration error.", e);
     } catch (ConnectException e) {
-      log.info("Couldn't start HdfsSinkConnector:", e);
-      log.info("Shutting down HdfsSinkConnector.");
+      log.info("Couldn't start FyberHdfsSinkConnector:", e);
+      log.info("Shutting down FyberHdfsSinkConnector.");
       if (hdfsWriter != null) {
         hdfsWriter.close(assignment);
         hdfsWriter.stop();
