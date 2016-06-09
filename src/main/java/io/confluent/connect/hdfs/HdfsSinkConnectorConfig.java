@@ -308,6 +308,13 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
 
     // Define Internal configuration group
     config.define(STORAGE_CLASS_CONFIG, Type.STRING, STORAGE_CLASS_DEFAULT, Importance.LOW, STORAGE_CLASS_DOC, INTERNAL_GROUP, 1, Width.MEDIUM, STORAGE_CLASS_DISPLAY);
+
+    // Define Writer Logging configuration group
+    config.define(CONNECTOR_NAME_CONFIG, Type.STRING, CONNECTOR_NAME_DEFAULT, Importance.HIGH, CONNECTOR_NAME_DOC)
+        .define(WRITER_LOGGING_CONFIG, Type.BOOLEAN, WRITER_LOGGING_DEFAULT, Importance.LOW, WRITER_LOGGING_DOC)
+        .define(WRITER_LOGGING_BROKERS_CONFIG, Type.STRING, WRITER_LOGGING_BROKERS_DEFAULT, Importance.LOW, WRITER_LOGGING_BROKERS_DOC)
+        .define(WRITER_LOGGING_SCHEMA_REGISTRY_CONFIG, Type.STRING, WRITER_LOGGING_SCHEMA_REGISTRY_DEFAULT, Importance.LOW, WRITER_LOGGING_SCHEMA_REGISTRY_DOC)
+        .define(WRITER_LOGGING_TOPIC_FORMAT_CONFIG, Type.STRING, WRITER_LOGGING_TOPIC_FORMAT_DEFAULT, Importance.LOW, WRITER_LOGGING_TOPIC_FORMAT_DOC);
   }
 
   private static class SchemaCompatibilityRecommender extends BooleanParentRecommender {
