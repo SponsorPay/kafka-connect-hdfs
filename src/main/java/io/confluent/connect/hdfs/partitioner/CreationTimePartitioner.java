@@ -2,6 +2,7 @@ package io.confluent.connect.hdfs.partitioner;
 
 import io.confluent.connect.hdfs.errors.PartitionException;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.serde2.typeinfo.PrimitiveTypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
@@ -122,7 +123,10 @@ public class CreationTimePartitioner implements Partitioner {
         }
         for (String field: pathFormat.split("/")) {
             String[] parts = field.split("=");
-            FieldSchema fieldSchema = new FieldSchema(parts[0].replace("'", ""), TypeInfoFactory.stringTypeInfo.toString(), "");
+            String fieldName = parts[0].replace("'", "");
+            PrimitiveTypeInfo fieldType = fieldName.equalsIgnoreCase("year") ?
+                    TypeInfoFactory.shortTypeInfo : TypeInfoFactory.byteTypeInfo;
+            FieldSchema fieldSchema = new FieldSchema(fieldName, fieldType.toString(), "");
             partitionFields.add(fieldSchema);
         }
     }
