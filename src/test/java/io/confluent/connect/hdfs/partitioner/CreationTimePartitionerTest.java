@@ -14,6 +14,7 @@
 
 package io.confluent.connect.hdfs.partitioner;
 
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Struct;
@@ -23,6 +24,7 @@ import org.joda.time.DateTimeZone;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -67,6 +69,24 @@ public class CreationTimePartitionerTest {
 
         String encodedPartition = partitioner.encodePartition(sinkRecord);
         assertEquals("year=2016/month=04/day=06/hour=14/", encodedPartition);
+    }
+
+    @Test
+    public void testFieldSchema() throws Exception {
+        Map<String, Object> config = createConfig();
+
+        CreationTimePartitioner partitioner = new CreationTimePartitioner();
+        partitioner.configure(config);
+
+        List<FieldSchema> fields = partitioner.partitionFields();
+        assertEquals(fields.size(), 4);
+        for (FieldSchema schema: fields) {
+            if (schema.getName().equalsIgnoreCase("year")) {
+                assertEquals("smallint", schema.getType());
+            } else {
+                assertEquals("tinyint", schema.getType());
+            }
+        }
     }
 
     private Map<String, Object> createConfig() {
