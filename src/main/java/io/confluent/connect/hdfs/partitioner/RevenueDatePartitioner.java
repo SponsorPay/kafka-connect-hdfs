@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 public class RevenueDatePartitioner implements Partitioner {
     private static final Logger log = LoggerFactory.getLogger(FieldPartitioner.class);
     private static String pathFormat = "'year'=YYYY/'month'=MM/'day'=dd/";
-    private static DateTimeFormatter eventFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
+    private  DateTimeFormatter eventFormatter;
 
     // Duration of a partition in milliseconds.
     private DateTimeFormatter formatter;
@@ -60,6 +60,7 @@ public class RevenueDatePartitioner implements Partitioner {
         boolean hiveIntegration = hiveIntString != null && hiveIntString.toLowerCase().equals("true");
         Locale locale = new Locale(localeString);
         DateTimeZone timeZone = DateTimeZone.forID(timeZoneString);
+        eventFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(timeZone);
         init(pathFormat, locale, timeZone, hiveIntegration);
     }
 
