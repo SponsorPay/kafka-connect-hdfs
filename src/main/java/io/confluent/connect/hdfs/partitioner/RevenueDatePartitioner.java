@@ -9,40 +9,34 @@ import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.sink.SinkRecord;
-import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RevenueDatePartitioner implements Partitioner {
     private static final Logger log = LoggerFactory.getLogger(FieldPartitioner.class);
     private static String pathFormat = "'year'=YYYY/'month'=MM/'day'=dd/";
-    private  DateTimeFormatter eventFormatter;
 
     // Duration of a partition in milliseconds.
     private DateTimeFormatter formatter;
+    private DateTimeFormatter eventFormatter;
     protected List<FieldSchema> partitionFields = new ArrayList<>();
     private static String patternString = "'year'=Y{1,5}/('month'=M{1,5}/)?('day'=d{1,3}/)?";
     private static Pattern pattern = Pattern.compile(patternString);
 
     protected void init(String pathFormat, Locale locale,
-                        DateTimeZone timeZone, boolean hiveIntegration) {
-        this.formatter = getDateTimeFormatter(pathFormat, timeZone).withLocale(locale);
+                        TimeZone tz,
+                        boolean hiveIntegration) {
+        this.formatter = DateTimeFormatter.ofPattern(pathFormat).withZone(tz.toZoneId()).withLocale(locale);
+        this.eventFormatter = DateTimeFormatter.ISO_LOCAL_DATE.withZone(tz.toZoneId()).withLocale(locale);
         addToPartitionFields(pathFormat, hiveIntegration);
     }
 
-    private static DateTimeFormatter getDateTimeFormatter(String str, DateTimeZone timeZone) {
-        return DateTimeFormat.forPattern(str).withZone(timeZone);
-    }
 
     @Override
     public void configure(Map<String, Object> config) {
@@ -59,9 +53,8 @@ public class RevenueDatePartitioner implements Partitioner {
         String hiveIntString = (String) config.get(HdfsSinkConnectorConfig.HIVE_INTEGRATION_CONFIG);
         boolean hiveIntegration = hiveIntString != null && hiveIntString.toLowerCase().equals("true");
         Locale locale = new Locale(localeString);
-        DateTimeZone timeZone = DateTimeZone.forID(timeZoneString);
-        eventFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(timeZone);
-        init(pathFormat, locale, timeZone, hiveIntegration);
+        TimeZone tz = TimeZone.getTimeZone(timeZoneString);
+        init(pathFormat, locale, tz, hiveIntegration);
     }
 
     @Override
@@ -88,9 +81,9 @@ public class RevenueDatePartitioner implements Partitioner {
             throw new PartitionException("Error encoding partition.");
         }
 
-        LocalDateTime dateTime = LocalDateTime.parse(record, eventFormatter);
+        LocalDate dateTime = LocalDate.parse(record,eventFormatter );
 
-        return dateTime.toString(formatter);
+        return dateTime.format(formatter);
     }
 
 
