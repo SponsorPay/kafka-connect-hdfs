@@ -14,7 +14,6 @@
 
 package io.confluent.connect.hdfs;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.kafka.clients.producer.internals.DefaultPartitioner;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
@@ -23,7 +22,6 @@ import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.common.config.ConfigDef.Width;
 import org.apache.kafka.common.config.ConfigException;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,11 +32,11 @@ import io.confluent.connect.hdfs.partitioner.FieldPartitioner;
 import io.confluent.connect.hdfs.partitioner.HourlyPartitioner;
 import io.confluent.connect.hdfs.partitioner.Partitioner;
 import io.confluent.connect.hdfs.partitioner.TimeBasedPartitioner;
-import io.confluent.connect.hdfs.storage.HdfsStorage;
-import io.confluent.connect.hdfs.storage.Storage;
-import io.confluent.connect.hdfs.storage.StorageFactory;
 
 public class HdfsSinkConnectorConfig extends AbstractConfig {
+  public static final String CONNECTOR_NAME_CONFIG = "name";
+  private static final String CONNECTOR_NAME_DOC = "Name of current connector";
+  public static final String CONNECTOR_NAME_DEFAULT = "unknown_connector";
 
   // HDFS Group
   public static final String HDFS_URL_CONFIG = "hdfs.url";
@@ -242,6 +240,25 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
   public static final String STORAGE_CLASS_DEFAULT = "io.confluent.connect.hdfs.storage.HdfsStorage";
   private static final String STORAGE_CLASS_DISPLAY = "Storage Class";
 
+  public static final String WRITER_LOGGING_CONFIG = "hdfs.writer.logging";
+  private static final String WRITER_LOGGING_DOC =
+          "Configuration indicating whether to put file names written to HDFS to a Kafka topic";
+  public static final boolean WRITER_LOGGING_DEFAULT = false;
+
+  public static final String WRITER_LOGGING_BROKERS_CONFIG = "hdfs.writer.logging.brokers";
+  private static final String WRITER_LOGGING_BROKERS_DOC = "List of kafka brokers: broker1:9092,broker2:9092";
+  public static final String WRITER_LOGGING_BROKERS_DEFAULT = "localhost:9092";
+
+
+  public static final String WRITER_LOGGING_SCHEMA_REGISTRY_CONFIG = "hdfs.writer.logging.schema.registry";
+  private static final String WRITER_LOGGING_SCHEMA_REGISTRY_DOC = "Url of a schema registry";
+  public static final String WRITER_LOGGING_SCHEMA_REGISTRY_DEFAULT = "http://localhost:8081";
+
+  public static final String WRITER_LOGGING_TOPIC_FORMAT_CONFIG = "hdfs.writer.topic.format";
+  private static final String WRITER_LOGGING_TOPIC_FORMAT_DOC =
+          "Format of a topic name with named parameters: connector, topic. For example: ${connector}_${topic}";
+  public static final String WRITER_LOGGING_TOPIC_FORMAT_DEFAULT = "${connector}-${topic}-log";
+
   public static final String HDFS_GROUP = "HDFS";
   public static final String HIVE_GROUP = "Hive";
   public static final String SECURITY_GROUP = "Security";
@@ -259,7 +276,7 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
   static {
 
     // Define HDFS configuration group
-    config.define(HDFS_URL_CONFIG, Type.STRING, "", new HdfsUrlValidator(), Importance.HIGH, HDFS_URL_DOC, HDFS_GROUP, 1, Width.MEDIUM, HDFS_URL_DISPLAY)
+    config.define(HDFS_URL_CONFIG, Type.STRING, Importance.HIGH, HDFS_URL_DOC, HDFS_GROUP, 1, Width.MEDIUM, HDFS_URL_DISPLAY)
         .define(HADOOP_CONF_DIR_CONFIG, Type.STRING, HADOOP_CONF_DIR_DEFAULT, Importance.HIGH, HADOOP_CONF_DIR_DOC, HDFS_GROUP, 2, Width.MEDIUM, HADOOP_CONF_DIR_DISPLAY)
         .define(HADOOP_HOME_CONFIG, Type.STRING, HADOOP_HOME_DEFAULT, Importance.HIGH, HADOOP_HOME_DOC, HDFS_GROUP, 3, Width.SHORT, HADOOP_HOME_DISPLAY)
         .define(TOPICS_DIR_CONFIG, Type.STRING, TOPICS_DIR_DEFAULT, Importance.HIGH, TOPICS_DIR_DOC, HDFS_GROUP, 4, Width.SHORT, TOPICS_DIR_DISPLAY)
@@ -313,6 +330,13 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
 
     // Define Internal configuration group
     config.define(STORAGE_CLASS_CONFIG, Type.STRING, STORAGE_CLASS_DEFAULT, Importance.LOW, STORAGE_CLASS_DOC, INTERNAL_GROUP, 1, Width.MEDIUM, STORAGE_CLASS_DISPLAY);
+
+    // Define Writer Logging configuration group
+    config.define(CONNECTOR_NAME_CONFIG, Type.STRING, CONNECTOR_NAME_DEFAULT, Importance.HIGH, CONNECTOR_NAME_DOC)
+        .define(WRITER_LOGGING_CONFIG, Type.BOOLEAN, WRITER_LOGGING_DEFAULT, Importance.LOW, WRITER_LOGGING_DOC)
+        .define(WRITER_LOGGING_BROKERS_CONFIG, Type.STRING, WRITER_LOGGING_BROKERS_DEFAULT, Importance.LOW, WRITER_LOGGING_BROKERS_DOC)
+        .define(WRITER_LOGGING_SCHEMA_REGISTRY_CONFIG, Type.STRING, WRITER_LOGGING_SCHEMA_REGISTRY_DEFAULT, Importance.LOW, WRITER_LOGGING_SCHEMA_REGISTRY_DOC)
+        .define(WRITER_LOGGING_TOPIC_FORMAT_CONFIG, Type.STRING, WRITER_LOGGING_TOPIC_FORMAT_DEFAULT, Importance.LOW, WRITER_LOGGING_TOPIC_FORMAT_DOC);
   }
 
   private static class SchemaCompatibilityRecommender extends BooleanParentRecommender {
@@ -392,26 +416,6 @@ public class HdfsSinkConnectorConfig extends AbstractConfig {
 
   private static boolean classNameEquals(String className, Class<?> clazz) {
     return className.equals(clazz.getSimpleName()) || className.equals(clazz.getCanonicalName());
-  }
-
-  private static class HdfsUrlValidator implements ConfigDef.Validator {
-
-    @Override
-    public void ensureValid(String name, Object o) {
-      String url = (String ) o;
-      Configuration conf = new Configuration();
-      if (url.equals("") || url.startsWith("memory")) {
-        return;
-      }
-      try {
-        Storage storage = StorageFactory.createStorage(HdfsStorage.class, conf, url);
-        storage.listStatus("/");
-      } catch (IOException e) {
-        throw new ConfigException("Cannot connect to HDFS.");
-      } catch (Throwable t) {
-        throw new ConfigException("Exception:", t);
-      }
-    }
   }
 
   public static ConfigDef getConfig() {
