@@ -53,6 +53,25 @@ public class CreationTimePartitionerTest {
     }
 
     @Test
+    public void testWithDifferentFiledNamePartition() throws Exception {
+        Map<String, Object> config = createConfigWithCustomFieldName("custom_time");
+        String timeZoneString = (String) config.get(HdfsSinkConnectorConfig.TIMEZONE_CONFIG);
+        long timestamp = new DateTime(2016, 4, 6, 14, 0, 0, 0, DateTimeZone.forID(timeZoneString)).getMillis();
+
+        CreationTimePartitioner partitioner = new CreationTimePartitioner();
+        partitioner.configure(config);
+        Schema valueSchema = SchemaBuilder.struct()
+                .name("Test schema").version(1).doc("Schema to test encoding")
+                .field("custom_time", Schema.INT64_SCHEMA)
+                .build();
+        Object value = new Struct(valueSchema).put("custom_time", timestamp);
+        SinkRecord sinkRecord = new SinkRecord("topic-2", 0, Schema.STRING_SCHEMA, "key", valueSchema, value, 0);
+
+        String encodedPartition = partitioner.encodePartition(sinkRecord);
+        assertEquals("year=2016/month=04/day=06/hour=14/", encodedPartition);
+    }
+
+    @Test
     public void testEncodedPartition() throws Exception {
         Map<String, Object> config = createConfig();
         String timeZoneString = (String) config.get(HdfsSinkConnectorConfig.TIMEZONE_CONFIG);
@@ -93,6 +112,15 @@ public class CreationTimePartitionerTest {
         Map<String, Object> config = new HashMap<>();
         config.put(HdfsSinkConnectorConfig.LOCALE_CONFIG, "en");
         config.put(HdfsSinkConnectorConfig.TIMEZONE_CONFIG, "UTC");
+        return config;
+    }
+
+    private Map<String, Object> createConfigWithCustomFieldName(String fieldName) {
+        Map<String, Object> config = new HashMap<>();
+        config.put(HdfsSinkConnectorConfig.LOCALE_CONFIG, "en");
+        config.put(HdfsSinkConnectorConfig.TIMEZONE_CONFIG, "UTC");
+        config.put(HdfsSinkConnectorConfig.TIMEZONE_CONFIG, "UTC");
+        config.put(HdfsSinkConnectorConfig.PARTITION_FIELD_NAME_CONFIG, fieldName);
         return config;
     }
 }

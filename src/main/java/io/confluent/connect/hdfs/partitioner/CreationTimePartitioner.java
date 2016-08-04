@@ -29,6 +29,7 @@ public class CreationTimePartitioner implements Partitioner {
     private static final Logger log = LoggerFactory.getLogger(FieldPartitioner.class);
     private static long partitionDurationMs = TimeUnit.HOURS.toMillis(1);
     private static String pathFormat = "'year'=YYYY/'month'=MM/'day'=dd/'hour'=HH/";
+    private String fieldName = "creation_timestamp";
 
     // Duration of a partition in milliseconds.
     private DateTimeFormatter formatter;
@@ -64,6 +65,11 @@ public class CreationTimePartitioner implements Partitioner {
             throw new ConfigException(HdfsSinkConnectorConfig.TIMEZONE_CONFIG,
                     timeZoneString, "Timezone cannot be empty.");
         }
+        String partitionField = (String) config.get(HdfsSinkConnectorConfig.PARTITION_FIELD_NAME_CONFIG);
+        if (partitionField != null && !partitionField.equals("")) {
+            fieldName = partitionField;
+        }
+
         String hiveIntString = (String) config.get(HdfsSinkConnectorConfig.HIVE_INTEGRATION_CONFIG);
         boolean hiveIntegration = hiveIntString != null && hiveIntString.toLowerCase().equals("true");
         Locale locale = new Locale(localeString);
@@ -74,7 +80,6 @@ public class CreationTimePartitioner implements Partitioner {
     @Override
     public String encodePartition(SinkRecord sinkRecord) {
         long timestamp;
-        String fieldName = "creation_timestamp";
         Object value = sinkRecord.value();
         Schema valueSchema = sinkRecord.valueSchema();
         if (value instanceof Struct) {
