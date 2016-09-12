@@ -292,7 +292,7 @@ public class TopicPartitionWriter {
       } catch (SchemaProjectorException | IllegalWorkerStateException | HiveMetaStoreException e ) {
         throw new RuntimeException(e);
       } catch (IOException | ConnectException e) {
-        log.error("Exception on {}.", tp);
+        log.error("Exception on {} with {}.", tp, e.getMessage());
         failureTime = System.currentTimeMillis();
         setRetryTimeout(timeoutMs);
         break;
