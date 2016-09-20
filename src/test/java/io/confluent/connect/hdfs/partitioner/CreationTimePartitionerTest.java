@@ -49,7 +49,7 @@ public class CreationTimePartitionerTest {
         String encodedPartition = TimeUtils.encodeTimestamp(partitionDurationMs, pathFormat,
                 timeZoneString, timestamp);
         String path = partitioner.generatePartitionedPath("topic", encodedPartition);
-        assertEquals("topic/year=2016/month=04/day=06/hour=14/", path);
+        assertEquals("topic/year=2016/month=4/day=6/hour=14/", path);
     }
 
     @Test
@@ -68,7 +68,7 @@ public class CreationTimePartitionerTest {
         SinkRecord sinkRecord = new SinkRecord("topic-2", 0, Schema.STRING_SCHEMA, "key", valueSchema, value, 0);
 
         String encodedPartition = partitioner.encodePartition(sinkRecord);
-        assertEquals("year=2016/month=04/day=06/hour=14/", encodedPartition);
+        assertEquals("year=2016/month=4/day=6/hour=14/", encodedPartition);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class CreationTimePartitionerTest {
         SinkRecord sinkRecord = new SinkRecord("topic", 0, Schema.STRING_SCHEMA, "key", valueSchema, value, 0);
 
         String encodedPartition = partitioner.encodePartition(sinkRecord);
-        assertEquals("year=2016/month=04/day=06/hour=14/", encodedPartition);
+        assertEquals("year=2016/month=4/day=6/hour=14/", encodedPartition);
     }
 
     @Test
