@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 public class CreationTimePartitioner implements Partitioner {
     private static final Logger log = LoggerFactory.getLogger(FieldPartitioner.class);
     private static long partitionDurationMs = TimeUnit.HOURS.toMillis(1);
-    private static String pathFormat = "'year'=YYYY/'month'=MM/'day'=dd/'hour'=HH/";
+    private static String pathFormat = "'year'=YYYY/'month'=M/'day'=d/'hour'=H/";
     private String fieldName = "creation_timestamp";
 
     // Duration of a partition in milliseconds.
