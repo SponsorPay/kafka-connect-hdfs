@@ -99,12 +99,8 @@ public class CreationTimePartitionerTest {
 
         List<FieldSchema> fields = partitioner.partitionFields();
         assertEquals(fields.size(), 4);
-        for (FieldSchema schema: fields) {
-            if (schema.getName().equalsIgnoreCase("year")) {
-                assertEquals("smallint", schema.getType());
-            } else {
-                assertEquals("tinyint", schema.getType());
-            }
+        for (FieldSchema schema : fields) {
+            assertEquals("smallint", schema.getType());
         }
     }
 

@@ -129,9 +129,7 @@ public class CreationTimePartitioner implements Partitioner {
         for (String field: pathFormat.split("/")) {
             String[] parts = field.split("=");
             String fieldName = parts[0].replace("'", "");
-            PrimitiveTypeInfo fieldType = fieldName.equalsIgnoreCase("year") ?
-                    TypeInfoFactory.shortTypeInfo : TypeInfoFactory.byteTypeInfo;
-            FieldSchema fieldSchema = new FieldSchema(fieldName, fieldType.toString(), "");
+            FieldSchema fieldSchema = new FieldSchema(fieldName, TypeInfoFactory.shortTypeInfo.toString(), "");
             partitionFields.add(fieldSchema);
         }
     }
