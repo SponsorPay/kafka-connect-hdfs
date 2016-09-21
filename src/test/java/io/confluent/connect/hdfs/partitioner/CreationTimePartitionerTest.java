@@ -104,6 +104,23 @@ public class CreationTimePartitionerTest {
         }
     }
 
+    @Test
+    public void testCustomPartitionedPath() throws Exception {
+        Map<String, Object> config = createConfig();
+
+        CreationTimePartitioner partitioner = new CreationTimePartitioner();
+        config.put("path.format", "'year'=YYYY/'month'=M/'day'=d/'hour'=H/");
+        partitioner.configure(config);
+
+        String pathFormat = partitioner.getPathFormat();
+        String timeZoneString = (String) config.get(HdfsSinkConnectorConfig.TIMEZONE_CONFIG);
+        long timestamp = new DateTime(2016, 4, 6, 14, 0, 0, 0, DateTimeZone.forID(timeZoneString)).getMillis();
+        String encodedPartition = TimeUtils.encodeTimestamp(partitionDurationMs, pathFormat,
+                timeZoneString, timestamp);
+        String path = partitioner.generatePartitionedPath("topic", encodedPartition);
+        assertEquals("topic/year=2016/month=4/day=6/hour=14/", path);
+    }
+
     private Map<String, Object> createConfig() {
         Map<String, Object> config = new HashMap<>();
         config.put(HdfsSinkConnectorConfig.LOCALE_CONFIG, "en");
@@ -114,7 +131,6 @@ public class CreationTimePartitionerTest {
     private Map<String, Object> createConfigWithCustomFieldName(String fieldName) {
         Map<String, Object> config = new HashMap<>();
         config.put(HdfsSinkConnectorConfig.LOCALE_CONFIG, "en");
-        config.put(HdfsSinkConnectorConfig.TIMEZONE_CONFIG, "UTC");
         config.put(HdfsSinkConnectorConfig.TIMEZONE_CONFIG, "UTC");
         config.put(HdfsSinkConnectorConfig.PARTITION_FIELD_NAME_CONFIG, fieldName);
         return config;
