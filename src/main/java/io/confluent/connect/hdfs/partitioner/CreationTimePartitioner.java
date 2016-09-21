@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 public class CreationTimePartitioner implements Partitioner {
     private static final Logger log = LoggerFactory.getLogger(FieldPartitioner.class);
     private static long partitionDurationMs = TimeUnit.HOURS.toMillis(1);
-    private static String pathFormat = "'year'=YYYY/'month'=MM/'day'=dd/'hour'=HH/";
+    private String pathFormat = "'year'=YYYY/'month'=MM/'day'=dd/'hour'=HH/";
     private String fieldName = "creation_timestamp";
 
     // Duration of a partition in milliseconds.
@@ -71,6 +71,12 @@ public class CreationTimePartitioner implements Partitioner {
         }
 
         String hiveIntString = (String) config.get(HdfsSinkConnectorConfig.HIVE_INTEGRATION_CONFIG);
+
+        String pathFormatFromConfiguration = (String) config.get(HdfsSinkConnectorConfig.PATH_FORMAT_CONFIG);
+        if (pathFormatFromConfiguration != null && !pathFormatFromConfiguration.equals("")) {
+            pathFormat = pathFormatFromConfiguration;
+        }
+
         boolean hiveIntegration = hiveIntString != null && hiveIntString.toLowerCase().equals("true");
         Locale locale = new Locale(localeString);
         DateTimeZone timeZone = DateTimeZone.forID(timeZoneString);
