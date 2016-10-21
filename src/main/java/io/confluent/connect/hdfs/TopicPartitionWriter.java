@@ -555,6 +555,13 @@ public class TopicPartitionWriter {
     }
   }
 
+  private final static org.apache.avro.Schema logSchema = org.apache.avro.SchemaBuilder
+    .record("writerlog").fields()
+      .requiredString("file")
+      .requiredLong("time")
+      .name("count").type().intType().intDefault(-1)
+    .endRecord();
+
   private ProducerRecord<String, Object> createLogRecord(TopicPartition tp, String dir, String file) {
     String topic;
     try {
@@ -568,12 +575,7 @@ public class TopicPartitionWriter {
     }
 
     String key = dir;
-    org.apache.avro.Schema schema = org.apache.avro.SchemaBuilder.record("writerlog").fields()
-            .requiredString("file")
-            .requiredLong("time")
-            .name("count").type().intType().intDefault(-1)
-            .endRecord();
-    org.apache.avro.generic.GenericRecord value = new org.apache.avro.generic.GenericData.Record(schema);
+    org.apache.avro.generic.GenericRecord value = new org.apache.avro.generic.GenericData.Record(logSchema);
     value.put("file", file);
     value.put("time",  Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTimeInMillis());
     value.put("count", recordCounter);
